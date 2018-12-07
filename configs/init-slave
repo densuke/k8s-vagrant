@@ -1,5 +1,5 @@
 #!/bin/bash
 
-. /vagrant/common
+. /vagrant/configs/common
 
 [ -f /vagrant/join-code ] && bash -x /vagrant/join-code

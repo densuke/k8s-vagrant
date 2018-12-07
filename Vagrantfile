@@ -31,7 +31,7 @@ Vagrant.configure("2") do |config|
         vb.memory = 2048
         vb.cpus = 2
       end
-      n.vm.provision "shell", path: node[:script]
+      n.vm.provision "shell", path: "configs/#{node[:script]}"
     end
   end
 end
