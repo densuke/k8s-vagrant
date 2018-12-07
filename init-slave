@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. /vagrant/common
+
+[ -f /vagrant/join-code ] && bash -x /vagrant/join-code

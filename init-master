@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ -e /etc/kubernetes/admin.conf -a -e ~vagrant/.kube/config ]; then
+	 cat <<EOM 
+====================================
+Kubernetes master already installed
+====================================
+EOM
+	exit 0
+fi
+
+rm -f /vagrant/join-code
+
+
+. /vagrant/common
+
+TMPFILE=/tmp/k8s.$$
+
+kubeadm init \
+  --pod-network-cidr=10.224.0.0/16  \
+  --apiserver-advertise-address 192.168.33.11 | tee $TMPFILE
+
+
+tail $TMPFILE | grep kubeadm > /vagrant/join-code
+
+
+install -v -d -o $(id -u vagrant) -g $(id -g vagrant) -m 0700 ~vagrant/.kube
+install -v -o $(id -u vagrant) -g $(id -g vagrant) -m 0400 /etc/kubernetes/admin.conf ~vagrant/.kube/config
+
+sudo -Hu vagrant kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml

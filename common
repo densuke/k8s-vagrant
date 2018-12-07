@@ -1,0 +1,40 @@
+#!/bin/bash
+
+locale-gen ja_JP.UTF-8
+localectl set-locale LANG=ja_JP.UTF-8
+timedatectl set-timezone Asia/Tokyo
+
+
+which kubeadm >& /dev/null
+if [ ! $? = 0 ]; then # not found -> install
+    echo "update hosts"
+    cat /vagrant/vm-hosts >> /etc/hosts
+    apt-get update && apt-get install -y apt-transport-https curl
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+    echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+    apt-get update
+    apt-get install -y kubelet kubeadm kubectl
+    apt-mark hold kubelet kubeadm kubectl
+
+fi
+
+which docker >&/dev/null
+if [ ! $? = 0 ]; then # not found -> install
+    apt-get install -y \
+	    apt-transport-https \
+	    ca-certificates \
+	    curl \
+	    software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+    add-apt-repository \
+	    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+             $(lsb_release -cs) \
+             stable"
+    apt-get update && apt-get install -y docker-ce
+    usermod -a -G docker vagrant
+fi
+
+if [ ! -f /etc/sysctl.d/99-k8s.conf ]; then
+	  install -m 0644 -o root -g root /vagrant/99-k8s.conf /etc/sysctl.d/
+	  sysctl -p
+fi
